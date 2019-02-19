@@ -1,8 +1,7 @@
+
 //https://www.youtube.com/user/v12345vtm  please subscribe if this code helped you
 
 //https://github.com/v12345vtm/CameraWebserver2SD/edit/master/CameraWebserver2SD/CameraWebserver2SD.ino
-
-
 
 #include "esp_camera.h"
 #include <WiFi.h>
@@ -46,6 +45,7 @@ typedef struct {
 static ra_filter_t ra_filter;
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
+
 static mtmn_config_t mtmn_config = {0};
 static int8_t recognition_enabled = 0;
 static int8_t is_enrolling = 0;
@@ -56,251 +56,55 @@ typedef struct {
         size_t len;
 } jpg_chunking_t;
 
-const char* ssid = "WiFi";  ///CHANGE TO YOUR WIFI
-const char* password = "password"; /// CHANGE TO YOUR WIFI
-
+const char* ssid = "WiFi";
+const char* password = "pass";
 const char* ntpServer = "pool.ntp.org"; //internet time server
 const long  gmtOffset_sec = 3600;//internet time server
 const int   daylightOffset_sec = 3600;//internet time server
 
 static int8_t detection_enabled = 0;
-static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
 
-<!doctype html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>v12345vtm capture2SD</title>
-        <style>
-body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#EFEFEF;font-size:16px}h2{font-size:18px}section.main{display:flex}#menu,section.main{flex-direction:column}#menu{display:none;flex-wrap:nowrap;min-width:340px;background:#363636;padding:8px;border-radius:4px;margin-top:-10px;margin-right:10px}#content{display:flex;flex-wrap:wrap;align-items:stretch}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}figure img{display:block;width:100%;height:auto;border-radius:4px;margin-top:8px}@media (min-width: 800px) and (orientation:landscape){#content{display:flex;flex-wrap:nowrap;align-items:stretch}figure img{display:block;max-width:100%;max-height:calc(100vh - 40px);width:auto;height:auto}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}}section#buttons{display:flex;flex-wrap:nowrap;justify-content:space-between}#nav-toggle{cursor:pointer;display:block}#nav-toggle-cb{outline:0;opacity:0;width:0;height:0}#nav-toggle-cb:checked+#menu{display:flex}.input-group{display:flex;flex-wrap:nowrap;line-height:22px;margin:5px 0}.input-group>label{display:inline-block;padding-right:10px;min-width:47%}.input-group input,.input-group select{flex-grow:1}.range-max,.range-min{display:inline-block;padding:0 5px}button{display:block;margin:5px;padding:0 12px;border:0;line-height:28px;cursor:pointer;color:#fff;background:#ff3034;border-radius:5px;font-size:16px;outline:0}button:hover{background:#ff494d}button:active{background:#f21c21}button.disabled{cursor:default;background:#a0a0a0}input[type=range]{-webkit-appearance:none;width:100%;height:22px;background:#363636;cursor:pointer;margin:0}input[type=range]:focus{outline:0}input[type=range]::-webkit-slider-runnable-track{width:100%;height:2px;cursor:pointer;background:#EFEFEF;border-radius:0;border:0 solid #EFEFEF}input[type=range]::-webkit-slider-thumb{border:1px solid rgba(0,0,30,0);height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;-webkit-appearance:none;margin-top:-11.5px}input[type=range]:focus::-webkit-slider-runnable-track{background:#EFEFEF}input[type=range]::-moz-range-track{width:100%;height:2px;cursor:pointer;background:#EFEFEF;border-radius:0;border:0 solid #EFEFEF}input[type=range]::-moz-range-thumb{border:1px solid rgba(0,0,30,0);height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer}input[type=range]::-ms-track{width:100%;height:2px;cursor:pointer;background:0 0;border-color:transparent;color:transparent}input[type=range]::-ms-fill-lower{background:#EFEFEF;border:0 solid #EFEFEF;border-radius:0}input[type=range]::-ms-fill-upper{background:#EFEFEF;border:0 solid #EFEFEF;border-radius:0}input[type=range]::-ms-thumb{border:1px solid rgba(0,0,30,0);height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;height:2px}input[type=range]:focus::-ms-fill-lower{background:#EFEFEF}input[type=range]:focus::-ms-fill-upper{background:#363636}.switch{display:block;position:relative;line-height:22px;font-size:16px;height:22px}.switch input{outline:0;opacity:0;width:0;height:0}.slider{width:50px;height:22px;border-radius:22px;cursor:pointer;background-color:grey}.slider,.slider:before{display:inline-block;transition:.4s}.slider:before{position:relative;content:"";border-radius:50%;height:16px;width:16px;left:4px;top:3px;background-color:#fff}input:checked+.slider{background-color:#ff3034}input:checked+.slider:before{-webkit-transform:translateX(26px);transform:translateX(26px)}select{border:1px solid #363636;font-size:14px;height:22px;outline:0;border-radius:5px}.image-container{position:relative;min-width:160px}.close{position:absolute;right:5px;top:5px;background:#ff3034;width:16px;height:16px;border-radius:100px;color:#fff;text-align:center;line-height:18px;cursor:pointer}.hidden{display:none}
-        </style>
-    </head>
-    <body>
-    
-    
-<a href="https://www.youtube.com/user/v12345vtm" target="_blank">please subscribe to my channel</a>
+static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_boxes){
+    dl_matrix3du_t *aligned_face = NULL;
+    int matched_id = 0;
 
-        <section class="main">
-            <div id="logo">
-                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle settings</label>
-            </div>
-            <div id="content">
-                <div id="sidebar">
-                    <input type="checkbox" id="nav-toggle-cb" checked="checked">
-                    <nav id="menu">
-                        <div class="input-group" id="framesize-group">
-                            <label for="framesize">Resolution</label>
-                            <select id="framesize" class="default-action">
-                                <option value="10">UXGA(1600x1200)</option>
-                                <option value="9">SXGA(1280x1024)</option>
-                                <option value="8">XGA(1024x768)</option>
-                                <option value="7">SVGA(800x600)</option>
-                                <option value="6">VGA(640x480)</option>
-                                <option value="5" selected="selected">CIF(400x296)</option>
-                                <option value="4">QVGA(320x240)</option>
-                                <option value="3">HQVGA(240x176)</option>
-                                <option value="0">QQVGA(160x120)</option>
-                            </select>
-                        </div>
-                        <div class="input-group" id="quality-group">
-                            <label for="quality">Quality</label>
-                            <div class="range-min">10</div>
-                            <input type="range" id="quality" min="10" max="63" value="10" class="default-action">
-                            <div class="range-max">63</div>
-                        </div>
-                        <div class="input-group" id="brightness-group">
-                            <label for="brightness">Brightness</label>
-                            <div class="range-min">-2</div>
-                            <input type="range" id="brightness" min="-2" max="2" value="0" class="default-action">
-                            <div class="range-max">2</div>
-                        </div>
-                        <div class="input-group" id="contrast-group">
-                            <label for="contrast">Contrast</label>
-                            <div class="range-min">-2</div>
-                            <input type="range" id="contrast" min="-2" max="2" value="0" class="default-action">
-                            <div class="range-max">2</div>
-                        </div>
-                        <div class="input-group" id="saturation-group">
-                            <label for="saturation">Saturation</label>
-                            <div class="range-min">-2</div>
-                            <input type="range" id="saturation" min="-2" max="2" value="0" class="default-action">
-                            <div class="range-max">2</div>
-                        </div>
-                        <div class="input-group" id="special_effect-group">
-                            <label for="special_effect">Special Effect</label>
-                            <select id="special_effect" class="default-action">
-                                <option value="0" selected="selected">No Effect</option>
-                                <option value="1">Negative</option>
-                                <option value="2">Grayscale</option>
-                                <option value="3">Red Tint</option>
-                                <option value="4">Green Tint</option>
-                                <option value="5">Blue Tint</option>
-                                <option value="6">Sepia</option>
-                            </select>
-                        </div>
-                        <div class="input-group" id="awb-group">
-                            <label for="awb">AWB</label>
-                            <div class="switch">
-                                <input id="awb" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="awb"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="awb_gain-group">
-                            <label for="awb_gain">AWB Gain</label>
-                            <div class="switch">
-                                <input id="awb_gain" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="awb_gain"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="wb_mode-group">
-                            <label for="wb_mode">WB Mode</label>
-                            <select id="wb_mode" class="default-action">
-                                <option value="0" selected="selected">Auto</option>
-                                <option value="1">Sunny</option>
-                                <option value="2">Cloudy</option>
-                                <option value="3">Office</option>
-                                <option value="4">Home</option>
-                            </select>
-                        </div>
-                        <div class="input-group" id="aec-group">
-                            <label for="aec">AEC SENSOR</label>
-                            <div class="switch">
-                                <input id="aec" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="aec"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="aec2-group">
-                            <label for="aec2">AEC DSP</label>
-                            <div class="switch">
-                                <input id="aec2" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="aec2"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="ae_level-group">
-                            <label for="ae_level">AE Level</label>
-                            <div class="range-min">-2</div>
-                            <input type="range" id="ae_level" min="-2" max="2" value="0" class="default-action">
-                            <div class="range-max">2</div>
-                        </div>
-                        <div class="input-group" id="aec_value-group">
-                            <label for="aec_value">Exposure</label>
-                            <div class="range-min">0</div>
-                            <input type="range" id="aec_value" min="0" max="1200" value="204" class="default-action">
-                            <div class="range-max">1200</div>
-                        </div>
-                        <div class="input-group" id="agc-group">
-                            <label for="agc">AGC</label>
-                            <div class="switch">
-                                <input id="agc" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="agc"></label>
-                            </div>
-                        </div>
-                        <div class="input-group hidden" id="agc_gain-group">
-                            <label for="agc_gain">Gain</label>
-                            <div class="range-min">1x</div>
-                            <input type="range" id="agc_gain" min="0" max="30" value="5" class="default-action">
-                            <div class="range-max">31x</div>
-                        </div>
-                        <div class="input-group" id="gainceiling-group">
-                            <label for="gainceiling">Gain Ceiling</label>
-                            <div class="range-min">2x</div>
-                            <input type="range" id="gainceiling" min="0" max="6" value="0" class="default-action">
-                            <div class="range-max">128x</div>
-                        </div>
-                        <div class="input-group" id="bpc-group">
-                            <label for="bpc">BPC</label>
-                            <div class="switch">
-                                <input id="bpc" type="checkbox" class="default-action">
-                                <label class="slider" for="bpc"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="wpc-group">
-                            <label for="wpc">WPC</label>
-                            <div class="switch">
-                                <input id="wpc" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="wpc"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="raw_gma-group">
-                            <label for="raw_gma">Raw GMA</label>
-                            <div class="switch">
-                                <input id="raw_gma" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="raw_gma"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="lenc-group">
-                            <label for="lenc">Lens Correction</label>
-                            <div class="switch">
-                                <input id="lenc" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="lenc"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="hmirror-group">
-                            <label for="hmirror">H-Mirror</label>
-                            <div class="switch">
-                                <input id="hmirror" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="hmirror"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="vflip-group">
-                            <label for="vflip">V-Flip</label>
-                            <div class="switch">
-                                <input id="vflip" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="vflip"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="dcw-group">
-                            <label for="dcw">DCW (Downsize EN)</label>
-                            <div class="switch">
-                                <input id="dcw" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="dcw"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="colorbar-group">
-                            <label for="colorbar">Color Bar</label>
-                            <div class="switch">
-                                <input id="colorbar" type="checkbox" class="default-action">
-                                <label class="slider" for="colorbar"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="face_detect-group">
-                            <label for="face_detect">Face Detection</label>
-                            <div class="switch">
-                                <input id="face_detect" type="checkbox" class="default-action">
-                                <label class="slider" for="face_detect"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="face_recognize-group">
-                            <label for="face_recognize">Face Recognition</label>
-                            <div class="switch">
-                                <input id="face_recognize" type="checkbox" class="default-action">
-                                <label class="slider" for="face_recognize"></label>
-                            </div>
-                        </div>
-                        <section id="buttons">
-                            <button id="get-still">Get Still</button>
-                            <button id="toggle-stream">Start Stream</button>
-                            <button id="face_enroll" class="disabled" disabled="disabled">Enroll Face</button>
-                        </section>
-                    </nav>
-                </div>
-                <figure>
-                    <div id="stream-container" class="image-container hidden">
-                        <div class="close" id="close-stream">×</div>
-                        <img id="stream" src="">
-                    </div>
-                </figure>
-            </div>
-        </section>
-        <script>
-document.addEventListener('DOMContentLoaded',function(){function b(B){let C;switch(B.type){case'checkbox':C=B.checked?1:0;break;case'range':case'select-one':C=B.value;break;case'button':case'submit':C='1';break;default:return;}const D=`${c}/control?var=${B.id}&val=${C}`;fetch(D).then(E=>{console.log(`request to ${D} finished, status: ${E.status}`)})}var c=document.location.origin;const e=B=>{B.classList.add('hidden')},f=B=>{B.classList.remove('hidden')},g=B=>{B.classList.add('disabled'),B.disabled=!0},h=B=>{B.classList.remove('disabled'),B.disabled=!1},i=(B,C,D)=>{D=!(null!=D)||D;let E;'checkbox'===B.type?(E=B.checked,C=!!C,B.checked=C):(E=B.value,B.value=C),D&&E!==C?b(B):!D&&('aec'===B.id?C?e(v):f(v):'agc'===B.id?C?(f(t),e(s)):(e(t),f(s)):'awb_gain'===B.id?C?f(x):e(x):'face_recognize'===B.id&&(C?h(n):g(n)))};document.querySelectorAll('.close').forEach(B=>{B.onclick=()=>{e(B.parentNode)}}),fetch(`${c}/status`).then(function(B){return B.json()}).then(function(B){document.querySelectorAll('.default-action').forEach(C=>{i(C,B[C.id],!1)})});const j=document.getElementById('stream'),k=document.getElementById('stream-container'),l=document.getElementById('get-still'),m=document.getElementById('toggle-stream'),n=document.getElementById('face_enroll'),o=document.getElementById('close-stream'),p=()=>{window.stop(),m.innerHTML='Start Stream'},q=()=>{j.src=`${c+':9601'}/stream`,f(k),m.innerHTML='Stop Stream'};l.onclick=()=>{p(),j.src=`${c}/capture?_cb=${Date.now()}`,f(k)},o.onclick=()=>{p(),e(k)},m.onclick=()=>{const B='Stop Stream'===m.innerHTML;B?p():q()},n.onclick=()=>{b(n)},document.querySelectorAll('.default-action').forEach(B=>{B.onchange=()=>b(B)});const r=document.getElementById('agc'),s=document.getElementById('agc_gain-group'),t=document.getElementById('gainceiling-group');r.onchange=()=>{b(r),r.checked?(f(t),e(s)):(e(t),f(s))};const u=document.getElementById('aec'),v=document.getElementById('aec_value-group');u.onchange=()=>{b(u),u.checked?e(v):f(v)};const w=document.getElementById('awb_gain'),x=document.getElementById('wb_mode-group');w.onchange=()=>{b(w),w.checked?f(x):e(x)};const y=document.getElementById('face_detect'),z=document.getElementById('face_recognize'),A=document.getElementById('framesize');A.onchange=()=>{b(A),5<A.value&&(i(y,!1),i(z,!1))},y.onchange=()=>{return 5<A.value?(alert('Please select CIF or lower resolution before enabling this feature!'),void i(y,!1)):void(b(y),!y.checked&&(g(n),i(z,!1)))},z.onchange=()=>{return 5<A.value?(alert('Please select CIF or lower resolution before enabling this feature!'),void i(z,!1)):void(b(z),z.checked?(h(n),i(y,!0)):g(n))}});
-        </script>
-    </body>
-</html>
+    aligned_face = dl_matrix3du_alloc(1, FACE_WIDTH, FACE_HEIGHT, 3);
+    if(!aligned_face){
+        Serial.println("Could not allocate face recognition buffer");
+        return matched_id;
+    }
+    if (align_face(net_boxes, image_matrix, aligned_face) == ESP_OK){
+        if (is_enrolling == 1){
+            int8_t left_sample_face = enroll_face(&id_list, aligned_face);
 
-)rawliteral";
-///////////sd
+            if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
+                Serial.printf("Enrolling Face ID: %d\n", id_list.tail);
+            }
+            Serial.printf("Enrolling Face ID: %d sample %d\n", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
+            rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
+            if (left_sample_face == 0){
+                is_enrolling = 0;
+                Serial.printf("Enrolled Face ID: %d\n", id_list.tail);
+            }
+        } else {
+            matched_id = recognize_face(&id_list, aligned_face);
+            if (matched_id >= 0) {
+                Serial.printf("Match Face ID: %u\n", matched_id);
+                rgb_printf(image_matrix, FACE_COLOR_GREEN, "Hello Subject %u", matched_id);
+            } else {
+                Serial.println("No Match Found");
+                rgb_print(image_matrix, FACE_COLOR_RED, "Intruder Alert!");
+                matched_id = -1;
+            }
+        }
+    } else {
+        Serial.println("Face Not Aligned");
+        //rgb_print(image_matrix, FACE_COLOR_YELLOW, "Human Detected");
+    }
+
+    dl_matrix3du_free(aligned_face);
+    return matched_id;
+}
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     Serial.printf("Listing directory: %s\n", dirname);
@@ -518,32 +322,42 @@ static esp_err_t capture_handler(httpd_req_t *req){
 
 
 ////hier proberen we de SD te vinden zoeken
-Serial.println ("image byte size=");
+
+ 
+
+Serial.println ("fb lengte=");
  Serial.println ( fb->len );//jpg filesize
-const char * path = "/v12345vtm.jpg";
+// https://arduino.stackexchange.com/questions/39158/write-char-array-containing-new-line-to-sd-card
+//writeFile(fs::FS &fs, const char * path, const char * message)
+//writeFile(SD_MMC, "/hello.jpg",  (char*)fb->buf); // ERROR =>invalid conversion from 'uint8_t* {aka unsigned char*}' to 'const char*' [-fpermissive]
+const char * path = "/hellosd2.jpg";
 fs::FS &fs = SD_MMC; 
     Serial.printf("Writing file: %s\n", path);
     File file = fs.open(path, FILE_WRITE);
     if(!file){
-        Serial.println("Failed save capture to SD");
+        Serial.println("Failed to open file for SDwriting547");
           } 
     else
     {
-    file.write(fb->buf , fb->len); //payload , lengte vd payload
-       Serial.println("succes to save captured image +led flashed");
+      // file.print("ikbenerbijna"); //dat werkt maar stops printing at a NULL character (ASCII 0) not a new line
+     file.write(fb->buf , fb->len); //payload , lengte vd payload
+       Serial.println("succes to open file for SDwriting552");
     }
-  ///einde SD 
-        
-        esp_camera_fb_return(fb);
-        int64_t fr_end = esp_timer_get_time();
-
-     //   res = frame2jpg_cb(  fb,12,  jpg_encode_stream, &jchunk);
-Serial.println(res);// is 1 if jpg convertion worked
-
-
  
 
-        Serial.printf("JPG: %uB %ums\n\n\n\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
+
+  
+
+ //void writeFile(fs::FS &fs, const char * path, const char * message)
+  writeFile(SD_MMC, "/hello.jpg",  (char*)fb->buf); // ERROR =>invalid conversion from 'uint8_t* {aka unsigned char*}' to 'const char*' [-fpermissive]
+//fb->buf, 1, fb->len, file
+ writeFile(SD_MMC, "/hello.txt",  "ikwilfoto");
+  
+ ///einde SD         
+        esp_camera_fb_return(fb);
+        int64_t fr_end = esp_timer_get_time();
+Serial.println(res);// is 1 if jpg convertion worked
+ Serial.printf("JPG: %uB %ums\n\n\n\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
         return res;
     }
 
@@ -693,48 +507,6 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
         }
 #endif
     }
-}
-
-static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_boxes){
-    dl_matrix3du_t *aligned_face = NULL;
-    int matched_id = 0;
-
-    aligned_face = dl_matrix3du_alloc(1, FACE_WIDTH, FACE_HEIGHT, 3);
-    if(!aligned_face){
-        Serial.println("Could not allocate face recognition buffer");
-        return matched_id;
-    }
-    if (align_face(net_boxes, image_matrix, aligned_face) == ESP_OK){
-        if (is_enrolling == 1){
-            int8_t left_sample_face = enroll_face(&id_list, aligned_face);
-
-            if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
-                Serial.printf("Enrolling Face ID: %d\n", id_list.tail);
-            }
-            Serial.printf("Enrolling Face ID: %d sample %d\n", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
-            rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
-            if (left_sample_face == 0){
-                is_enrolling = 0;
-                Serial.printf("Enrolled Face ID: %d\n", id_list.tail);
-            }
-        } else {
-            matched_id = recognize_face(&id_list, aligned_face);
-            if (matched_id >= 0) {
-                Serial.printf("Match Face ID: %u\n", matched_id);
-                rgb_printf(image_matrix, FACE_COLOR_GREEN, "Hello Subject %u", matched_id);
-            } else {
-                Serial.println("No Match Found");
-                rgb_print(image_matrix, FACE_COLOR_RED, "Intruder Alert!");
-                matched_id = -1;
-            }
-        }
-    } else {
-        Serial.println("Face Not Aligned");
-        //rgb_print(image_matrix, FACE_COLOR_YELLOW, "Human Detected");
-    }
-
-    dl_matrix3du_free(aligned_face);
-    return matched_id;
 }
 
 
@@ -1022,6 +794,243 @@ static esp_err_t status_handler(httpd_req_t *req){
 
 
 
+
+
+
+static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>v12345vtm capture2sd</title>
+        <style>
+body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#EFEFEF;font-size:16px}h2{font-size:18px}section.main{display:flex}#menu,section.main{flex-direction:column}#menu{display:none;flex-wrap:nowrap;min-width:340px;background:#363636;padding:8px;border-radius:4px;margin-top:-10px;margin-right:10px}#content{display:flex;flex-wrap:wrap;align-items:stretch}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}figure img{display:block;width:100%;height:auto;border-radius:4px;margin-top:8px}@media (min-width: 800px) and (orientation:landscape){#content{display:flex;flex-wrap:nowrap;align-items:stretch}figure img{display:block;max-width:100%;max-height:calc(100vh - 40px);width:auto;height:auto}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}}section#buttons{display:flex;flex-wrap:nowrap;justify-content:space-between}#nav-toggle{cursor:pointer;display:block}#nav-toggle-cb{outline:0;opacity:0;width:0;height:0}#nav-toggle-cb:checked+#menu{display:flex}.input-group{display:flex;flex-wrap:nowrap;line-height:22px;margin:5px 0}.input-group>label{display:inline-block;padding-right:10px;min-width:47%}.input-group input,.input-group select{flex-grow:1}.range-max,.range-min{display:inline-block;padding:0 5px}button{display:block;margin:5px;padding:0 12px;border:0;line-height:28px;cursor:pointer;color:#fff;background:#ff3034;border-radius:5px;font-size:16px;outline:0}button:hover{background:#ff494d}button:active{background:#f21c21}button.disabled{cursor:default;background:#a0a0a0}input[type=range]{-webkit-appearance:none;width:100%;height:22px;background:#363636;cursor:pointer;margin:0}input[type=range]:focus{outline:0}input[type=range]::-webkit-slider-runnable-track{width:100%;height:2px;cursor:pointer;background:#EFEFEF;border-radius:0;border:0 solid #EFEFEF}input[type=range]::-webkit-slider-thumb{border:1px solid rgba(0,0,30,0);height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;-webkit-appearance:none;margin-top:-11.5px}input[type=range]:focus::-webkit-slider-runnable-track{background:#EFEFEF}input[type=range]::-moz-range-track{width:100%;height:2px;cursor:pointer;background:#EFEFEF;border-radius:0;border:0 solid #EFEFEF}input[type=range]::-moz-range-thumb{border:1px solid rgba(0,0,30,0);height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer}input[type=range]::-ms-track{width:100%;height:2px;cursor:pointer;background:0 0;border-color:transparent;color:transparent}input[type=range]::-ms-fill-lower{background:#EFEFEF;border:0 solid #EFEFEF;border-radius:0}input[type=range]::-ms-fill-upper{background:#EFEFEF;border:0 solid #EFEFEF;border-radius:0}input[type=range]::-ms-thumb{border:1px solid rgba(0,0,30,0);height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;height:2px}input[type=range]:focus::-ms-fill-lower{background:#EFEFEF}input[type=range]:focus::-ms-fill-upper{background:#363636}.switch{display:block;position:relative;line-height:22px;font-size:16px;height:22px}.switch input{outline:0;opacity:0;width:0;height:0}.slider{width:50px;height:22px;border-radius:22px;cursor:pointer;background-color:grey}.slider,.slider:before{display:inline-block;transition:.4s}.slider:before{position:relative;content:"";border-radius:50%;height:16px;width:16px;left:4px;top:3px;background-color:#fff}input:checked+.slider{background-color:#ff3034}input:checked+.slider:before{-webkit-transform:translateX(26px);transform:translateX(26px)}select{border:1px solid #363636;font-size:14px;height:22px;outline:0;border-radius:5px}.image-container{position:relative;min-width:160px}.close{position:absolute;right:5px;top:5px;background:#ff3034;width:16px;height:16px;border-radius:100px;color:#fff;text-align:center;line-height:18px;cursor:pointer}.hidden{display:none}
+        </style>
+    </head>
+    <body>  
+        
+<a href="https://www.youtube.com/user/v12345vtm" target="_blank">please subscribe to my channel</a>
+
+        <section class="main">
+  <div id="logo">
+                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle settings</label>
+            </div>
+            <div id="content">
+                <div id="sidebar">
+                    <input type="checkbox" id="nav-toggle-cb" checked="checked">
+                    <nav id="menu">
+                        <div class="input-group" id="framesize-group">
+                            <label for="framesize">Resolution</label>
+                            <select id="framesize" class="default-action">
+                                <option value="10">UXGA(1600x1200)</option>
+                                <option value="9">SXGA(1280x1024)</option>
+                                <option value="8">XGA(1024x768)</option>
+                                <option value="7">SVGA(800x600)</option>
+                                <option value="6">VGA(640x480)</option>
+                                <option value="5" selected="selected">CIF(400x296)</option>
+                                <option value="4">QVGA(320x240)</option>
+                                <option value="3">HQVGA(240x176)</option>
+                                <option value="0">QQVGA(160x120)</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="quality-group">
+                            <label for="quality">Quality</label>
+                            <div class="range-min">10</div>
+                            <input type="range" id="quality" min="10" max="63" value="10" class="default-action">
+                            <div class="range-max">63</div>
+                        </div>
+                        <div class="input-group" id="brightness-group">
+                            <label for="brightness">Brightness</label>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="brightness" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
+                        </div>
+                        <div class="input-group" id="contrast-group">
+                            <label for="contrast">Contrast</label>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="contrast" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
+                        </div>
+                        <div class="input-group" id="saturation-group">
+                            <label for="saturation">Saturation</label>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="saturation" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
+                        </div>
+                        <div class="input-group" id="special_effect-group">
+                            <label for="special_effect">Special Effect</label>
+                            <select id="special_effect" class="default-action">
+                                <option value="0" selected="selected">No Effect</option>
+                                <option value="1">Negative</option>
+                                <option value="2">Grayscale</option>
+                                <option value="3">Red Tint</option>
+                                <option value="4">Green Tint</option>
+                                <option value="5">Blue Tint</option>
+                                <option value="6">Sepia</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="awb-group">
+                            <label for="awb">AWB</label>
+                            <div class="switch">
+                                <input id="awb" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="awb"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="awb_gain-group">
+                            <label for="awb_gain">AWB Gain</label>
+                            <div class="switch">
+                                <input id="awb_gain" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="awb_gain"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="wb_mode-group">
+                            <label for="wb_mode">WB Mode</label>
+                            <select id="wb_mode" class="default-action">
+                                <option value="0" selected="selected">Auto</option>
+                                <option value="1">Sunny</option>
+                                <option value="2">Cloudy</option>
+                                <option value="3">Office</option>
+                                <option value="4">Home</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="aec-group">
+                            <label for="aec">AEC SENSOR</label>
+                            <div class="switch">
+                                <input id="aec" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="aec"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="aec2-group">
+                            <label for="aec2">AEC DSP</label>
+                            <div class="switch">
+                                <input id="aec2" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="aec2"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="ae_level-group">
+                            <label for="ae_level">AE Level</label>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="ae_level" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
+                        </div>
+                        <div class="input-group" id="aec_value-group">
+                            <label for="aec_value">Exposure</label>
+                            <div class="range-min">0</div>
+                            <input type="range" id="aec_value" min="0" max="1200" value="204" class="default-action">
+                            <div class="range-max">1200</div>
+                        </div>
+                        <div class="input-group" id="agc-group">
+                            <label for="agc">AGC</label>
+                            <div class="switch">
+                                <input id="agc" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="agc"></label>
+                            </div>
+                        </div>
+                        <div class="input-group hidden" id="agc_gain-group">
+                            <label for="agc_gain">Gain</label>
+                            <div class="range-min">1x</div>
+                            <input type="range" id="agc_gain" min="0" max="30" value="5" class="default-action">
+                            <div class="range-max">31x</div>
+                        </div>
+                        <div class="input-group" id="gainceiling-group">
+                            <label for="gainceiling">Gain Ceiling</label>
+                            <div class="range-min">2x</div>
+                            <input type="range" id="gainceiling" min="0" max="6" value="0" class="default-action">
+                            <div class="range-max">128x</div>
+                        </div>
+                        <div class="input-group" id="bpc-group">
+                            <label for="bpc">BPC</label>
+                            <div class="switch">
+                                <input id="bpc" type="checkbox" class="default-action">
+                                <label class="slider" for="bpc"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="wpc-group">
+                            <label for="wpc">WPC</label>
+                            <div class="switch">
+                                <input id="wpc" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="wpc"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="raw_gma-group">
+                            <label for="raw_gma">Raw GMA</label>
+                            <div class="switch">
+                                <input id="raw_gma" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="raw_gma"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="lenc-group">
+                            <label for="lenc">Lens Correction</label>
+                            <div class="switch">
+                                <input id="lenc" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="lenc"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="hmirror-group">
+                            <label for="hmirror">H-Mirror</label>
+                            <div class="switch">
+                                <input id="hmirror" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="hmirror"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="vflip-group">
+                            <label for="vflip">V-Flip</label>
+                            <div class="switch">
+                                <input id="vflip" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="vflip"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="dcw-group">
+                            <label for="dcw">DCW (Downsize EN)</label>
+                            <div class="switch">
+                                <input id="dcw" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="dcw"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="colorbar-group">
+                            <label for="colorbar">Color Bar</label>
+                            <div class="switch">
+                                <input id="colorbar" type="checkbox" class="default-action">
+                                <label class="slider" for="colorbar"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="face_detect-group">
+                            <label for="face_detect">Face Detection</label>
+                            <div class="switch">
+                                <input id="face_detect" type="checkbox" class="default-action">
+                                <label class="slider" for="face_detect"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="face_recognize-group">
+                            <label for="face_recognize">Face Recognition</label>
+                            <div class="switch">
+                                <input id="face_recognize" type="checkbox" class="default-action">
+                                <label class="slider" for="face_recognize"></label>
+                            </div>
+                        </div>
+                        <section id="buttons">
+                            <button id="get-still">Get Still</button>
+                            <button id="toggle-stream">Start Stream</button>
+                            <button id="face_enroll" class="disabled" disabled="disabled">Enroll Face</button>
+                        </section>
+                    </nav>
+                </div>
+                <figure>
+                    <div id="stream-container" class="image-container hidden">
+                        <div class="close" id="close-stream">×</div>
+                        <img id="stream" src="">
+                    </div>
+                </figure>
+            </div>
+        </section>        
+        <script>
+document.addEventListener('DOMContentLoaded',function(){function b(B){let C;switch(B.type){case'checkbox':C=B.checked?1:0;break;case'range':case'select-one':C=B.value;break;case'button':case'submit':C='1';break;default:return;}const D=`${c}/control?var=${B.id}&val=${C}`;fetch(D).then(E=>{console.log(`request to ${D} finished, status: ${E.status}`)})}var c=document.location.origin;const e=B=>{B.classList.add('hidden')},f=B=>{B.classList.remove('hidden')},g=B=>{B.classList.add('disabled'),B.disabled=!0},h=B=>{B.classList.remove('disabled'),B.disabled=!1},i=(B,C,D)=>{D=!(null!=D)||D;let E;'checkbox'===B.type?(E=B.checked,C=!!C,B.checked=C):(E=B.value,B.value=C),D&&E!==C?b(B):!D&&('aec'===B.id?C?e(v):f(v):'agc'===B.id?C?(f(t),e(s)):(e(t),f(s)):'awb_gain'===B.id?C?f(x):e(x):'face_recognize'===B.id&&(C?h(n):g(n)))};document.querySelectorAll('.close').forEach(B=>{B.onclick=()=>{e(B.parentNode)}}),fetch(`${c}/status`).then(function(B){return B.json()}).then(function(B){document.querySelectorAll('.default-action').forEach(C=>{i(C,B[C.id],!1)})});const j=document.getElementById('stream'),k=document.getElementById('stream-container'),l=document.getElementById('get-still'),m=document.getElementById('toggle-stream'),n=document.getElementById('face_enroll'),o=document.getElementById('close-stream'),p=()=>{window.stop(),m.innerHTML='Start Stream'},q=()=>{j.src=`${c+':9601'}/stream`,f(k),m.innerHTML='Stop Stream'};l.onclick=()=>{p(),j.src=`${c}/capture?_cb=${Date.now()}`,f(k)},o.onclick=()=>{p(),e(k)},m.onclick=()=>{const B='Stop Stream'===m.innerHTML;B?p():q()},n.onclick=()=>{b(n)},document.querySelectorAll('.default-action').forEach(B=>{B.onchange=()=>b(B)});const r=document.getElementById('agc'),s=document.getElementById('agc_gain-group'),t=document.getElementById('gainceiling-group');r.onchange=()=>{b(r),r.checked?(f(t),e(s)):(e(t),f(s))};const u=document.getElementById('aec'),v=document.getElementById('aec_value-group');u.onchange=()=>{b(u),u.checked?e(v):f(v)};const w=document.getElementById('awb_gain'),x=document.getElementById('wb_mode-group');w.onchange=()=>{b(w),w.checked?f(x):e(x)};const y=document.getElementById('face_detect'),z=document.getElementById('face_recognize'),A=document.getElementById('framesize');A.onchange=()=>{b(A),5<A.value&&(i(y,!1),i(z,!1))},y.onchange=()=>{return 5<A.value?(alert('Please select CIF or lower resolution before enabling this feature!'),void i(y,!1)):void(b(y),!y.checked&&(g(n),i(z,!1)))},z.onchange=()=>{return 5<A.value?(alert('Please select CIF or lower resolution before enabling this feature!'),void i(z,!1)):void(b(z),z.checked?(h(n),i(y,!0)):g(n))}});
+        </script>
+    </body>
+</html>
+)rawliteral";
+
 static esp_err_t index_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/html");
       Serial.printf("webpage loading \n");
@@ -1248,8 +1257,13 @@ void setup() {
     readFile(SD_MMC, "/foo.txt");
     testFileIO(SD_MMC, "/test.txt");
     Serial.printf("Total space: %lluMB\n", SD_MMC.totalBytes() / (1024 * 1024));
-    Serial.printf("Used space: %lluMB\n", SD_MMC.usedBytes() / (1024 * 1024));  
+    Serial.printf("Used space: %lluMB\n", SD_MMC.usedBytes() / (1024 * 1024));
+
+
     
+  
+
+  
   startCameraServer();// first SD , then webserver
 
   Serial.print("Camera Ready! Use 'http://");
