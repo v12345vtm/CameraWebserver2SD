@@ -327,10 +327,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
 
 Serial.println ("fb lengte=");
  Serial.println ( fb->len );//jpg filesize
-// https://arduino.stackexchange.com/questions/39158/write-char-array-containing-new-line-to-sd-card
-//writeFile(fs::FS &fs, const char * path, const char * message)
-//writeFile(SD_MMC, "/hello.jpg",  (char*)fb->buf); // ERROR =>invalid conversion from 'uint8_t* {aka unsigned char*}' to 'const char*' [-fpermissive]
-const char * path = "/hellosd2.jpg";
+const char * path = "/capture.jpg";
 fs::FS &fs = SD_MMC; 
     Serial.printf("Writing file: %s\n", path);
     File file = fs.open(path, FILE_WRITE);
@@ -339,19 +336,10 @@ fs::FS &fs = SD_MMC;
           } 
     else
     {
-      // file.print("ikbenerbijna"); //dat werkt maar stops printing at a NULL character (ASCII 0) not a new line
-     file.write(fb->buf , fb->len); //payload , lengte vd payload
+    file.write(fb->buf , fb->len); //payload , lengte vd payload
        Serial.println("succes to open file for SDwriting552");
     }
- 
-
-
-  
-
- //void writeFile(fs::FS &fs, const char * path, const char * message)
-  writeFile(SD_MMC, "/hello.jpg",  (char*)fb->buf); // ERROR =>invalid conversion from 'uint8_t* {aka unsigned char*}' to 'const char*' [-fpermissive]
-//fb->buf, 1, fb->len, file
- writeFile(SD_MMC, "/hello.txt",  "ikwilfoto");
+ writeFile(SD_MMC, "/info.txt",  "saved 1 jpgfile");
   
  ///einde SD         
         esp_camera_fb_return(fb);
@@ -810,7 +798,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#EFEFEF;fon
     </head>
     <body>  
         
-<a href="https://www.youtube.com/user/v12345vtm" target="_blank">please subscribe to my channel</a>
+<a href="https://www.youtube.com/user/v12345vtm" target="_blank" style="color:white">please subscribe to my channel</a>
 
         <section class="main">
   <div id="logo">
@@ -1034,7 +1022,6 @@ document.addEventListener('DOMContentLoaded',function(){function b(B){let C;swit
 static esp_err_t index_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/html");
       Serial.printf("webpage loading \n");
-   // httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
    return httpd_resp_send(req, (const char *)INDEX2_HTML, strlen(INDEX2_HTML));
 }
 
@@ -1042,7 +1029,6 @@ void startCameraServer(){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = 80;//overwrite
 
-// https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/protocols/esp_http_server.html?highlight=esp_http_server
     httpd_uri_t index_uri = {
         .uri       = "/",
         .method    = HTTP_GET,
@@ -1123,7 +1109,6 @@ void printLocalTime()
 
 }
 
- 
 
 #if defined(CAMERA_MODEL_AI_THINKER)
 #define PWDN_GPIO_NUM     32
@@ -1131,7 +1116,6 @@ void printLocalTime()
 #define XCLK_GPIO_NUM      0
 #define SIOD_GPIO_NUM     26
 #define SIOC_GPIO_NUM     27
-
 #define Y9_GPIO_NUM       35
 #define Y8_GPIO_NUM       34
 #define Y7_GPIO_NUM       39
@@ -1156,9 +1140,7 @@ void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
-  //  SPI.begin(14, 2, 15, 13); //used by SDcard
- 
-  Serial.println("SPI enabled \n");
+   Serial.println("v12345vtm \n");
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -1182,25 +1164,18 @@ void setup() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG; 
   //Format of the pixel data: PIXFORMAT_ + YUV422|GRAYSCALE|RGB565|JPEG 
-  
-  //init with high specs to pre-allocate larger buffers
-  //we have psram
+    //we have psram
     config.frame_size = FRAMESIZE_UXGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
     config.jpeg_quality = 10;
     config.fb_count = 2;
   
-  
-
   // camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
-
-  //drop down frame size for higher initial frame rate
- // sensor_t * s = esp_camera_sensor_get();
- // s->set_framesize(s, FRAMESIZE_QVGA);
+ 
 
   WiFi.begin(ssid, password);
 
@@ -1215,7 +1190,7 @@ void setup() {
   //init and get the internet-time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   
-  printLocalTime();
+  printLocalTime();////// option by v12345vtm
    Serial.println("\n internet time ok \n");
    
  /////////////SD card init
