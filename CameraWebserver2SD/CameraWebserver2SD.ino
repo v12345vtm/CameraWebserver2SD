@@ -1,4 +1,8 @@
-//https://raw.githubusercontent.com/v12345vtm/ESP32-CAM-IPCAM/master/Webcamserver1page.ino
+//https://www.youtube.com/user/v12345vtm  please subscribe if this code helped you
+
+//https://github.com/v12345vtm/CameraWebserver2SD/edit/master/CameraWebserver2SD/CameraWebserver2SD.ino
+
+
 
 #include "esp_camera.h"
 #include <WiFi.h>
@@ -73,6 +77,10 @@ body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#EFEFEF;fon
         </style>
     </head>
     <body>
+    
+    
+<a href="https://www.youtube.com/user/v12345vtm" target="_blank">please subscribe to my channel</a>
+
         <section class="main">
             <div id="logo">
                 <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle settings</label>
