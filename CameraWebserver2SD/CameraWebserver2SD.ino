@@ -1,7 +1,7 @@
 
 //https://www.youtube.com/user/v12345vtm  please subscribe if this code helped you
 
-//https://github.com/v12345vtm/CameraWebserver2SD/edit/master/CameraWebserver2SD/CameraWebserver2SD.ino
+//https://github.com/v12345vtm/CameraWebserver2SD/blob/master/CameraWebserver2SD/CameraWebserver2SD.ino
 
 #include "esp_camera.h"
 #include <WiFi.h>
