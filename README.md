@@ -3,7 +3,7 @@
 
 https://github.com/v12345vtm/CameraWebserver2SD/blob/master/CameraWebserver2SD/CameraWebserver2SD.ino
 
-https://www.youtube.com/user/v12345vtm
+https://youtu.be/2xOo-zorpYI
 
 if you the video helped you , buy me a coffee :)
 https://www.paypal.me/v12345vtm/3 
