@@ -1,6 +1,13 @@
 # CameraWebserver2SD
 1file ino arduino ESP32 wrover
 
+https://github.com/v12345vtm/CameraWebserver2SD/blob/master/CameraWebserver2SD/CameraWebserver2SD.ino
+
+https://www.youtube.com/user/v12345vtm
+
+if you the video helped you , buy me a coffee :)
+https://www.paypal.me/v12345vtm/3 
+
 for ESP32-CAM
 
 includes : 
